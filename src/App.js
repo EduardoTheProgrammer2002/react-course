@@ -1,54 +1,45 @@
 /* eslint-disable array-callback-return */
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import SearchBox from './components/search-box/search-box.component';
 import CardList from './components/card-list/card-list.component';
 import './App.css';
 
-class App extends Component {
-  constructor() {
-    super();
-    this.state = {
-      monsters: [],
-      searchField: ''
-    }
-  }
 
-  // Using the user API
-  componentDidMount() {
+const App = () => {
+  const [searchField, setSearcField] = useState('');
+  const [monsters, setMonsters] = useState([]);
+  const [filteredMonsters, setFilteredMonsters] = useState(monsters);
+
+  useEffect(() => {
     fetch('https://jsonplaceholder.typicode.com/users')
     .then(resp => resp.json())
-    .then(users => this.setState({ monsters: users }));
-  }
+    .then(users => setMonsters(users));  
+  }, []);
 
-  onSearchChange = (event) => {
-    //this stands for the string that the user puts on the search box
-    let searchField = event.target.value.toLocaleLowerCase();
-    this.setState(() => { // that way we update the searchfield to basicly pass it into the filter function of the monsters.
-      return { searchField };
-    })
-  }
-
-  render() {
-    //Ec2016 optimitation for confortable reable for us.
-    const {monsters, searchField} = this.state;
-    const { onSearchChange } = this;
-
-    //this is the array of monsters already filtered
-    const filteredMonsters = monsters.filter((monster) => {
+  useEffect(() => {
+    const newFilteredMonsters = monsters.filter((monster) => {
       return monster.name.toLocaleLowerCase().includes(searchField);
     });
 
-    return (
-      <div className="App">
-        <h1 className='app-title'>Monsters Rolodex</h1>
-        <SearchBox 
-        className = "monsters-search-box" 
-        placeholder = "Search monsters" 
-        onChangeHandler = {onSearchChange}/> 
-        <CardList monsters={filteredMonsters} />
-      </div>
-    );  
-  }  
-}
+    setFilteredMonsters(newFilteredMonsters);
+  }, [monsters, searchField]);
+
+  const onSearchChange = (event) => {
+    //this stands for the string that the user puts on the search box
+    let searchFieldString = event.target.value.toLocaleLowerCase();
+    setSearcField(searchFieldString);
+  }
+
+  return (
+    <div className="App">
+      <h1 className='app-title'>Monsters Rolodex</h1>
+      <SearchBox 
+      className = "monsters-search-box" 
+      placeholder = "Search monsters" 
+      onChangeHandler = {onSearchChange}/> 
+      <CardList monsters={filteredMonsters} />
+    </div>
+  ); 
+};
 
 export default App;
